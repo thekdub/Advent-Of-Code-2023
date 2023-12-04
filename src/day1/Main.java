@@ -1,3 +1,5 @@
+package day1;
+
 /*
 --- Day 1: Trebuchet?! ---
 Something is wrong with global snow production, and you've been selected to take a look. The Elves have even given you a map; on it, they've used stars to mark the top fifty locations that are likely to be having problems.
@@ -35,7 +37,7 @@ public class Main {
 
     // Open input file and read lines
     try (BufferedReader reader = new BufferedReader(
-          new FileReader("2023-12-01" + File.separator + "input.txt"))) {
+          new FileReader("src" + File.separator + "day1" + File.separator + "input.txt"))) {
       String line;
       while ((line = reader.readLine()) != null) {
         // Extract part 1 answer
