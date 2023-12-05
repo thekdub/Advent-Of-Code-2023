@@ -1,5 +1,9 @@
 package day2;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+
 /*
 --- Day 2: Cube Conundrum ---
 You're launched high into the atmosphere! The apex of your trajectory just barely reaches the surface of a large island floating in the sky. You gently land in a fluffy pile of leaves. It's quite cold, but you don't see much snow. An Elf runs over to greet you.
@@ -27,11 +31,6 @@ In the example above, games 1, 2, and 5 would have been possible if the bag had 
 
 Determine which games would have been possible if the bag had been loaded with only 12 red cubes, 13 green cubes, and 14 blue cubes. What is the sum of the IDs of those games?
  */
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-
 public class Main {
   public static void main(String[] args) {
     // Storage for answers

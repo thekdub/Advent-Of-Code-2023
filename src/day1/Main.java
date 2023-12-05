@@ -1,5 +1,9 @@
 package day1;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+
 /*
 --- Day 1: Trebuchet?! ---
 Something is wrong with global snow production, and you've been selected to take a look. The Elves have even given you a map; on it, they've used stars to mark the top fifty locations that are likely to be having problems.
@@ -24,11 +28,6 @@ In this example, the calibration values of these four lines are 12, 38, 15, and 
 
 Consider your entire calibration document. What is the sum of all of the calibration values?
  */
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-
 public class Main {
   public static void main(String[] args) {
     // Storage for answers
