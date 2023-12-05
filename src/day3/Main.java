@@ -3,6 +3,10 @@ package day3;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /*
 --- Day 3: Gear Ratios ---
@@ -71,16 +75,52 @@ public class Main {
     try (BufferedReader reader = new BufferedReader(
           new FileReader("src" + File.separator + "day3" + File.separator + "input.txt"))) {
 
+      HashSet<Number> numbers = new HashSet<>();
+
       // Convert data to character array
       char[][] chars = reader.lines().map(String::toCharArray).toArray(char[][]::new);
 
       // Iterate through rows and columns of characters searching for numbers touching symbols.
       for (int x = 0; x < chars.length; x++) {
         for (int y = 0; y < chars[x].length; y++) {
-          // Add number if touching a symbol
-          answer1 += search1(chars, x, y);
-          // Add gear ratio for *
-          answer2 += search2(chars, x, y);
+          // Compile hashset of numbers in the dataset
+          if (isNumber(chars[x][y])) {
+            numbers.add(new Number(chars, x, y));
+          }
+        }
+      }
+
+      // Iterate through rows and columns of characters searching for numbers touching symbols.
+      for (int x = 0; x < chars.length; x++) {
+        for (int y = 0; y < chars[x].length; y++) {
+          // Check if symbol
+          if (isSymbol(chars[x][y])) {
+            // Final copies of position for stream access
+            int finalX = x;
+            int finalY = y;
+            // Filter for numbers where number is adjacent to the symbol
+            answer1 += numbers.parallelStream()
+                  .filter(number -> number.getX() >= finalX - 1 && number.getX() <= finalX + 1)
+                  .filter(number -> number.getMinY() <= finalY + 1 && number.getMaxY() >= finalY - 1)
+                  // Calculate the sum of the numbers
+                  .map(Number::getValue)
+                  .reduce(Integer::sum).orElse(0);
+
+            // Star for part 2
+            if (chars[x][y] == '*') {
+              // Filter for numbers where number is adjacent to the *
+              Set<Integer> temp = numbers.parallelStream()
+                    .filter(number -> number.getX() >= finalX - 1 && number.getX() <= finalX + 1)
+                    .filter(number -> number.getMinY() <= finalY + 1 && number.getMaxY() >= finalY - 1)
+                    // Collect the values of the numbers
+                    .map(Number::getValue)
+                    .collect(Collectors.toSet());
+              // If only two numbers are touching the *, add their product to the sum
+              if (temp.size() == 2) {
+                answer2 += temp.stream().reduce(1, (a, b) -> a * b);
+              }
+            }
+          }
         }
       }
 
@@ -102,60 +142,78 @@ public class Main {
     return !isNumber(c) && c != '.';
   }
 
-  private static int search1(char[][] array, int x, int y) {
-    // Exclude non-numbers
-    if (!isNumber(array[x][y])) {
-      return 0;
-    }
-    // Exclude non-starting numbers
-    if (y > 0 && isNumber(array[x][y - 1])) {
-      return 0;
-    }
-    // Find length of the number
-    int numLen = 0;
-    do {
-      numLen++;
-    } while (y + numLen < array[x].length && isNumber(array[x][y + numLen]));
 
-    // Calculate found number value
-    int num = 0;
-    for (int i = 0; i < numLen; i++) {
-      num *= 10;
-      num += array[x][y + i] - '0';
-    }
+  private static class Number {
+    private final int X;
+    private final int MIN_Y;
+    private final int MAX_Y;
+    private final int VALUE;
 
-    // Check row above, current row, and row below (if present)
-    for (int nx = Math.max(0, x - 1); nx < Math.min(array.length - 1, x + 2); nx++) {
-      // Check column behind, current columns, and column after (if present)
-      for (int ny = Math.max(0, y - 1); ny < Math.min(array.length - 1, y + numLen + 1); ny++) {
-        // Check if a symbol is adjacent to number
-        if (isSymbol(array[nx][ny])) {
-          return num;
+    protected Number(char[][] array, int x, int y) {
+      this.X = x;
+
+      // Determine min and max y indices for the number
+      int minY = y;
+      int maxY = y;
+
+      for (int i = y; i >= 0; i--) {
+        if (isNumber(array[x][i])) {
+          minY = i;
+        }
+        else {
+          break;
         }
       }
-    }
-
-    // No symbol found; not a part number
-    return 0;
-  }
-
-  private static int search2(char[][] array, int x, int y) {
-    if (array[x][y] != '*') {
-      return 0;
-    }
-
-    // Check row above, current row, and row below (if present)
-    for (int nx = Math.max(0, x - 1); nx < Math.min(array.length - 1, x + 2); nx++) {
-      // Check column behind, current columns, and column after (if present)
-      for (int ny = Math.max(0, y - 1); ny < Math.min(array.length - 1, y + 2); ny++) {
-        // Search for numbers
-        if (isNumber(array[nx][ny])) {
-
+      for (int i = y; i < array[x].length; i++) {
+        if (isNumber(array[x][i])) {
+          maxY = i;
+        }
+        else {
+          break;
         }
       }
+
+      this.MIN_Y = minY;
+      this.MAX_Y = maxY;
+
+      // Determine the value of the number
+      int value = 0;
+
+      for (int i = minY; i <= maxY; i++) {
+        value *= 10;
+        value += array[x][i] - '0';
+      }
+
+      this.VALUE = value;
     }
 
-    // Two part numbers not found
-    return 0;
+    public int getX() {
+      return X;
+    }
+
+    public int getMinY() {
+      return MIN_Y;
+    }
+
+    public int getMaxY() {
+      return MAX_Y;
+    }
+
+    public int getValue() {
+      return VALUE;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      Number number = (Number) o;
+      return X == number.X && MIN_Y == number.MIN_Y && MAX_Y == number.MAX_Y && VALUE == number.VALUE;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(X, MIN_Y, MAX_Y, VALUE);
+    }
   }
 }
